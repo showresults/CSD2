@@ -1,0 +1,6 @@
+image2_white_astronaut.mp4: A white astronaut is riding a brown horse.
+image5_bunny.mp4: A baby bunny sitting on top of a stack of pancakes.
+image16_Spider_Man.mp4: Spider Man.
+image19_astronaut.mp4: astronaut.
+image22_cookies.mp4: A plate piled high with chocolate chip cookies.
+image25_simba.mp4: simba, the lion cub from The Lion King.

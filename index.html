@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupled Score Distillation: Unlocking Geometrically Consistent Text-to-3D Generation with Multi-View Constraints and Gaussian Splatting</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .abstract {
+            font-style: italic;
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 30px 0;
+        }
+        
+
+        table td img {
+            width: 100%;
+            height: auto;
+        }
+        
+        .video-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 40px 0;
+        }
+        
+        .video-pair {
+            width: 30%;
+            margin-bottom: 30px;
+        }
+        
+        .video-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .video-prompt {
+            grid-column: span 2;
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 5px;
+            color: #555;
+            min-height: 40px;
+        }
+        
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        
+        .qualitative-table {
+            width: 100%;
+            overflow-x: auto;
+            margin: 40px 0;
+            border-collapse: collapse;
+        }
+        
+        .qualitative-table th, .qualitative-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .qualitative-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .qualitative-table th:first-child {
+            width: 140px;
+        }
+        
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        @media (max-width: 900px) {
+            .video-pair {
+                width: 45%;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .video-pair {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Coupled Score Distillation: Unlocking Geometrically Consistent Text-to-3D Generation with Multi-View Constraints and Gaussian Splatting</h1>
+    
+    
+    <!-- <h2>Qualitative Results Showcase</h2>
+
+    <p>Video of additional qualitative comparison results.</p> -->
+    
+    <div class="qualitative-container">
+        <table id="qualitative-table" class="qualitative-table">
+            <!-- Table will be populated by JavaScript -->
+        </table>
+    </div>
+
+
+    <script>
+        function createVideo(src, muted = true) {
+            const video = document.createElement('video');
+            video.src = src;
+            video.muted = muted;
+            video.autoplay = true;
+            video.loop = true;
+            video.controls = false;
+            video.addEventListener('mouseenter', function() {
+                this.controls = true;
+            });
+            video.addEventListener('mouseleave', function() {
+                this.controls = false;
+            });
+            return video;
+        }
+        
+        // Data for qualitative comparison
+        // image2_white_astronaut.mp4: A white astronaut is riding a brown horse.
+        // image5_bunny.mp4: A baby bunny sitting on top of a stack of pancakes.
+        // image16_Spider_Man.mp4: Spider Man.
+        // image19_astronaut.mp4: astronaut.
+        // image22_cookies.mp4: A plate piled high with chocolate chip cookies.
+        // image25_simba.mp4: simba, the lion cub from The Lion King.
+        const qualitativePrompts = {
+            "image2_white_astronaut": "A white astronaut is riding a brown horse.",
+            "image5_bunny": "A baby bunny sitting on top of a stack of pancakes.",
+            "image16_Spider_Man": "Spider Man.",
+            "image19_astronaut": "astronaut.",
+            "image22_cookies": "A plate piled high with chocolate chip cookies.",
+            "image25_simba": "simba, the lion cub from The Lion King.",
+        };
+        
+        const methods = [
+            "TRELLIS", 
+            "RichDreamer", 
+            "Wonder3D", 
+            "CSD(Ours)", 
+        ];
+        // Map method names to folder names
+        const methodToFolder = {
+            "TRELLIS": "1-TRELLIS",
+            "RichDreamer": "2-RichDreamer",
+            "Wonder3D": "3-Wonder3D",
+            "CSD(Ours)": "4-CSD(Ours)",
+        };
+        
+        // Extract just the image names for column headers
+        const promptNames = Object.keys(qualitativePrompts);
+        
+        // Generate qualitative results table
+        const qualitativeTable = document.getElementById('qualitative-table');
+        
+        // Create header row
+        const headerRow = document.createElement('tr');
+        
+        // First cell (empty corner)
+        const cornerCell = document.createElement('th');
+        headerRow.appendChild(cornerCell);
+        
+        // Add column headers (prompt names)
+        promptNames.forEach(name => {
+            const th = document.createElement('th');
+            th.textContent = qualitativePrompts[name];
+            headerRow.appendChild(th);
+        });
+        
+        qualitativeTable.appendChild(headerRow);
+        
+        // Create data rows
+        methods.forEach(method => {
+            const row = document.createElement('tr');
+            
+            // Add method name as first cell
+            const methodCell = document.createElement('td');
+            methodCell.textContent = method;
+            row.appendChild(methodCell);
+            
+            // Add video cells
+            promptNames.forEach(promptName => {
+                const cell = document.createElement('td');
+                 
+                let folderName = methodToFolder[method];
+
+                if (method === "Wonder3D") {
+                    const image = new Image();
+                    image.src = `data/3-Wonder3D/${promptName}.png`;
+                    cell.appendChild(image);
+                } else {
+                    const video = createVideo(`data/${folderName}/${promptName}.mp4`, true);
+                    cell.appendChild(video);
+                }
+                
+                row.appendChild(cell);
+            });
+            
+            qualitativeTable.appendChild(row);
+        });
+
+        if (window.location.href.includes("127.0.0.1")) {
+            console.log("Checking video loading status:");
+
+            // Create a test function
+            function testVideoLoading(videoPath) {
+                const testVideo = document.createElement('video');
+                testVideo.style.display = 'none';
+                document.body.appendChild(testVideo);
+                
+                testVideo.onloadeddata = function() {
+                    console.log(`✅ Successfully loaded: ${videoPath}`);
+                    this.remove();
+                };
+                
+                testVideo.onerror = function() {
+                    console.error(`❌ Loading failed: ${videoPath}`, this.error);
+                    this.remove();
+                };
+                
+                testVideo.src = videoPath;
+            }
+        }
+
+    </script>
+</body>
+</html>
