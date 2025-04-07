@@ -172,6 +172,7 @@
             "RichDreamer", 
             "Wonder3D", 
             "CSD(Ours)", 
+            "CSD(four orthogonal views)",
         ];
         // Map method names to folder names
         const methodToFolder = {
@@ -179,6 +180,7 @@
             "RichDreamer": "2-RichDreamer",
             "Wonder3D": "3-Wonder3D",
             "CSD(Ours)": "4-CSD(Ours)",
+            "CSD(four orthogonal views)": "5-CSD(four orthogonal views)",
         };
         
         // Extract just the image names for column headers
@@ -218,9 +220,9 @@
                  
                 let folderName = methodToFolder[method];
 
-                if (method === "Wonder3D") {
+                if (method === "Wonder3D" || method === "CSD(four orthogonal views)") {
                     const image = new Image();
-                    image.src = `data/3-Wonder3D/${promptName}.png`;
+                    image.src = `data/${folderName}/${promptName}.png`;
                     cell.appendChild(image);
                 } else {
                     const video = createVideo(`data/${folderName}/${promptName}.mp4`, true);
